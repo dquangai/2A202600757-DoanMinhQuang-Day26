@@ -16,7 +16,8 @@
           "search_documents": {
             "allowed": true,
             "data_classification": "internal",
-            "max_query_length": 500
+            "max_query_length": 500,
+            "blocked_keywords": ["password", "passwd", "secret", "credentials"]
           },
           "sql_query": {
             "allowed": true,
@@ -28,6 +29,11 @@
             "allowed": true,
             "data_classification": "internal",
             "max_input_chars": 10000
+          },
+          "count_words": {
+            "allowed": true,
+            "data_classification": "internal",
+            "max_input_chars": 50000
           }
         }
       }

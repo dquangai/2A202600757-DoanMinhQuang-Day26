@@ -98,6 +98,17 @@ async def list_tools() -> list[Tool]:
                 "required": ["text"],
             },
         ),
+        Tool(
+            name="count_words",
+            description="Đếm số từ trong một chuỗi văn bản và trả về thống kê chi tiết.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "text": {"type": "string", "description": "Văn bản cần đếm từ"},
+                },
+                "required": ["text"],
+            },
+        ),
     ]
     return [tool for tool in all_tools if tool.name in allowed]
 
@@ -120,6 +131,21 @@ def _sql_query(sql: str) -> list[dict[str, Any]]:
 def _summarize_text(text: str, max_bullets: int = 3) -> list[str]:
     sentences = [s.strip() for s in text.replace("\n", " ").split(".") if s.strip()]
     return [f"- {sentence}" for sentence in sentences[:max_bullets]]
+
+
+def _count_words(text: str) -> dict[str, Any]:
+    """Đếm số từ, ký tự và câu trong văn bản."""
+    import re
+    words = re.findall(r"\S+", text)
+    sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
+    chars_no_space = len(text.replace(" ", "").replace("\n", "").replace("\t", ""))
+    return {
+        "word_count": len(words),
+        "character_count": len(text),
+        "character_count_no_spaces": chars_no_space,
+        "sentence_count": len(sentences),
+        "average_word_length": round(chars_no_space / len(words), 2) if words else 0.0,
+    }
 
 
 @app.call_tool()
@@ -163,6 +189,9 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             int(arguments.get("max_bullets", 3)),
         )
         return [TextContent(type="text", text="\n".join(bullets))]
+    if name == "count_words":
+        stats = _count_words(arguments["text"])
+        return [TextContent(type="text", text=json.dumps(stats, indent=2, ensure_ascii=False))]
     raise ValueError(f"Tool không xác định: {name}")
 
 
